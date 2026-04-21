@@ -11,10 +11,9 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Job 1: Build and Test
   build-and-test:
     name: Build & Test Application
-    runs-on: [self-hosted, test]
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -38,10 +37,9 @@ jobs:
           name: app-jar
           path: target/*.jar
 
-  # Job 2: Validate Migrations
   validate-migrations:
     name: Validate Database Migrations
-    runs-on: [self-hosted, test]
+    runs-on: self-hosted
     needs: build-and-test
     services:
       postgres:
@@ -101,10 +99,9 @@ jobs:
             -Dflyway.user=postgres \
             -Dflyway.password=postgres123
 
-  # Job 3: Build Docker Image
   build-docker:
     name: Build & Push Docker Image
-    runs-on: [self-hosted, test]
+    runs-on: self-hosted
     needs: [build-and-test, validate-migrations]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
@@ -141,10 +138,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # Job 4: Deploy to Staging
   deploy-staging:
     name: Deploy to Staging
-    runs-on: [self-hosted, test]
+    runs-on: self-hosted
     needs: build-docker
     environment: staging
     steps:
@@ -180,10 +176,9 @@ jobs:
           kubectl get pods -n employee-staging
           kubectl logs -l app=employee-app -n employee-staging --tail=50 | grep "Flyway"
 
-  # Job 5: Deploy to Production
   deploy-production:
     name: Deploy to Production
-    runs-on: [self-hosted, test]
+    runs-on: self-hosted
     needs: deploy-staging
     environment: production
     steps:
@@ -228,10 +223,9 @@ jobs:
           kubectl rollout undo deployment/employee-app -n employee-prod
           kubectl rollout status deployment/employee-app -n employee-prod
 
-  # Job 6: Notify
   notify:
     name: Send Notifications
-    runs-on: [self-hosted, test]
+    runs-on: self-hosted
     needs: [deploy-production]
     if: always()
     steps:
