@@ -83,6 +83,7 @@ jobs:
             type=sha,prefix={{branch}}-
             type=ref,event=branch
             type=semver,pattern={{version}}
+            latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -94,101 +95,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: self-hosted
-    needs: build-docker
-    environment: staging
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-
-      - name: Configure kubectl
-        run: |
-          echo "${{ secrets.KUBECONFIG_STAGING }}" | base64 -d > kubeconfig
-          export KUBECONFIG=kubeconfig
-
-      - name: Backup database
-        run: |
-          echo "Creating database backup before migration..."
-          kubectl exec -n employee-staging deployment/postgres -- \
-            pg_dump -U postgres employeedb > backup-$(date +%Y%m%d-%H%M%S).sql
-
-      - name: Deploy to Kubernetes
-        run: |
-          kubectl apply -f k8s/ -n employee-staging
-          kubectl rollout status deployment/employee-app -n employee-staging --timeout=5m
-
-      - name: Run migrations
-        run: |
-          kubectl wait --for=condition=ready pod -l app=employee-app -n employee-staging --timeout=5m
-          echo "Migrations will run automatically on pod startup"
-
-      - name: Verify deployment
-        run: |
-          kubectl get pods -n employee-staging
-          kubectl logs -l app=employee-app -n employee-staging --tail=50 | grep "Flyway"
-
-  deploy-production:
-    name: Deploy to Production
-    runs-on: self-hosted
-    needs: deploy-staging
-    environment: production
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-
-      - name: Configure kubectl
-        run: |
-          echo "${{ secrets.KUBECONFIG_PRODUCTION }}" | base64 -d > kubeconfig
-          export KUBECONFIG=kubeconfig
-
-      - name: Backup production database
-        run: |
-          echo "Creating production database backup..."
-          kubectl exec -n employee-prod deployment/postgres -- \
-            pg_dump -U postgres employeedb > prod-backup-$(date +%Y%m%d-%H%M%S).sql
-          
-      - name: Blue-Green Deployment
-        run: |
-          # Deploy new version (green)
-          kubectl apply -f k8s/ -n employee-prod
-          kubectl rollout status deployment/employee-app -n employee-prod --timeout=10m
-          
-          # Health check
-          kubectl wait --for=condition=ready pod -l app=employee-app -n employee-prod --timeout=5m
-          
-          # Switch traffic to green
-          kubectl patch service employee-app -n employee-prod -p '{"spec":{"selector":{"version":"green"}}}'
-
-      - name: Verify production deployment
-        run: |
-          kubectl get pods -n employee-prod
-          kubectl logs -l app=employee-app -n employee-prod --tail=100 | grep "Flyway"
-
-      - name: Rollback on failure
-        if: failure()
-        run: |
-          echo "Deployment failed! Rolling back..."
-          kubectl rollout undo deployment/employee-app -n employee-prod
-          kubectl rollout status deployment/employee-app -n employee-prod
-
   notify:
-    name: Send Notifications
+    name: Pipeline Status
     runs-on: self-hosted
-    needs: [deploy-production]
+    needs: [build-docker]
     if: always()
     steps:
       - name: Notify success
         if: success()
-        run: echo "✅ Deployment successful!"
+        run: |
+          Write-Host "✅ Pipeline successful!"
+          Write-Host "Docker image pushed to: ${{ env.IMAGE_NAME }}"
+          Write-Host "To deploy locally: docker-compose pull && docker-compose up"
 
       - name: Notify failure
         if: failure()
-        run: echo "❌ Deployment failed!"
+        run: Write-Host "❌ Pipeline failed!"
