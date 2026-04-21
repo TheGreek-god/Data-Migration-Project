@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏢 Employee Management System</h1>
+        </header>
+
+        <div class="actions">
+            <a href="/new" class="btn btn-primary">➕ Add New Employee</a>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Position</th>
+                        <th>Salary</th>
+                        <th>Hire Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="employee : ${employees}">
+                        <td th:text="${employee.id}"></td>
+                        <td th:text="${employee.firstName + ' ' + employee.lastName}"></td>
+                        <td th:text="${employee.email}"></td>
+                        <td><span class="badge" th:text="${employee.department}"></span></td>
+                        <td th:text="${employee.position}"></td>
+                        <td th:text="'$' + ${#numbers.formatDecimal(employee.salary, 1, 2)}"></td>
+                        <td th:text="${#temporals.format(employee.hireDate, 'MMM dd, yyyy')}"></td>
+                        <td class="actions-cell">
+                            <a th:href="@{/edit/{id}(id=${employee.id})}" class="btn btn-small btn-edit">✏️ Edit</a>
+                            <a th:href="@{/delete/{id}(id=${employee.id})}" 
+                               class="btn btn-small btn-delete" 
+                               onclick="return confirm('Are you sure?')">🗑️ Delete</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+        </footer>
+    </div>
+</body>
+</html>
