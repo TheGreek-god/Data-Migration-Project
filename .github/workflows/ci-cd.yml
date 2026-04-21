@@ -14,7 +14,7 @@ jobs:
   # Job 1: Build and Test
   build-and-test:
     name: Build & Test Application
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -41,7 +41,7 @@ jobs:
   # Job 2: Validate Migrations
   validate-migrations:
     name: Validate Database Migrations
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: test
     needs: build-and-test
     services:
       postgres:
@@ -104,7 +104,7 @@ jobs:
   # Job 3: Build Docker Image
   build-docker:
     name: Build & Push Docker Image
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: test
     needs: [build-and-test, validate-migrations]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
@@ -144,7 +144,7 @@ jobs:
   # Job 4: Deploy to Staging
   deploy-staging:
     name: Deploy to Staging
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: test
     needs: build-docker
     environment: staging
     steps:
@@ -183,7 +183,7 @@ jobs:
   # Job 5: Deploy to Production
   deploy-production:
     name: Deploy to Production
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: test
     needs: deploy-staging
     environment: production
     steps:
@@ -231,7 +231,7 @@ jobs:
   # Job 6: Notify
   notify:
     name: Send Notifications
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: test
     needs: [deploy-production]
     if: always()
     steps:
