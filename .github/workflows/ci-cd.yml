@@ -8,7 +8,7 @@ on:
 
 env:
   DOCKER_REGISTRY: docker.io
-  IMAGE_NAME: thegreekgod/data-migration-project
+  IMAGE_NAME: greekgod659/data-migration-project
 
 jobs:
   build-and-test:
