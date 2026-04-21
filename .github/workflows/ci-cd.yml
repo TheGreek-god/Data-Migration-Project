@@ -47,14 +47,14 @@ jobs:
 
       - name: Validate migration files exist
         run: |
-          echo "Checking migration files..."
-          if [ -d "src/main/resources/db/migration" ]; then
-            echo "✅ Migration directory exists"
-            ls -la src/main/resources/db/migration/
-          else
-            echo "❌ Migration directory not found"
+          Write-Host "Checking migration files..."
+          if (Test-Path "src/main/resources/db/migration") {
+            Write-Host "✅ Migration directory exists"
+            Get-ChildItem src/main/resources/db/migration/
+          } else {
+            Write-Host "❌ Migration directory not found"
             exit 1
-          fi
+          }
 
   build-docker:
     name: Build & Push Docker Image
