@@ -15,6 +15,7 @@ public class Employee {
     private String email;
     private String department;
     private String position;
+    private String country;
     
     @Column(columnDefinition = "DECIMAL(10,2)")
     private Double salary;
@@ -38,6 +39,9 @@ public class Employee {
     
     public String getPosition() { return position; }
     public void setPosition(String position) { this.position = position; }
+    
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
     
     public Double getSalary() { return salary; }
     public void setSalary(Double salary) { this.salary = salary; }

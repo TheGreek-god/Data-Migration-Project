@@ -24,8 +24,8 @@ spec:
         command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
       containers:
       - name: app
-        image: employee-management:latest
-        imagePullPolicy: Never
+        image: greekgod659/data-migration-project:main
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         env:

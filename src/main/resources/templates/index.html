@@ -25,6 +25,7 @@
                         <th>Email</th>
                         <th>Department</th>
                         <th>Position</th>
+                        <th>Country</th>
                         <th>Salary</th>
                         <th>Hire Date</th>
                         <th>Actions</th>
@@ -37,6 +38,7 @@
                         <td th:text="${employee.email}"></td>
                         <td><span class="badge" th:text="${employee.department}"></span></td>
                         <td th:text="${employee.position}"></td>
+                        <td th:text="${employee.country}"></td>
                         <td th:text="'$' + ${#numbers.formatDecimal(employee.salary, 1, 2)}"></td>
                         <td th:text="${#temporals.format(employee.hireDate, 'MMM dd, yyyy')}"></td>
                         <td class="actions-cell">
